@@ -2,12 +2,12 @@ use std::{cmp, ops::Index};
 
 #[derive(Debug)]
 pub struct Slice {
-    pub data: Vec<u8>,
+    pub data: Box<[u8]>,
     pub size: usize,
 }
 
 impl Slice {
-    pub fn new(data: Vec<u8>, size: usize) -> Self {
+    pub fn new(data: Box<[u8]>, size: usize) -> Self {
         Slice { data, size }
     }
 
@@ -23,7 +23,7 @@ impl Slice {
             self.size = 0;
         } else {
             self.size -= n;
-            self.data = self.data[n..].to_vec();
+            self.data = self.data[n..].into();
         }
     }
 
@@ -33,7 +33,7 @@ impl Slice {
 
     pub fn clear(&mut self) {
         self.size = 0;
-        self.data.clear();
+        self.data = vec![].into();
     }
 }
 
@@ -71,7 +71,7 @@ mod test {
     fn test_slice() {
         let data: Vec<u8> = vec![0x00, 0x01, 0x02, 0x03];
         let size: usize = 4;
-        let slice: Slice = Slice::new(data, size);
+        let slice: Slice = Slice::new(data.into(), size);
         assert_eq!(slice[0], 0x00);
         assert_eq!(slice[1], 0x01);
         assert_eq!(slice[2], 0x02);
@@ -82,8 +82,8 @@ mod test {
     fn test_slice_eq() {
         let data: Vec<u8> = vec![0x00, 0x01, 0x02, 0x03];
         let size: usize = 4;
-        let slice1: Slice = Slice::new(data.clone(), size);
-        let slice2: Slice = Slice::new(data.clone(), size);
+        let slice1: Slice = Slice::new(data.clone().into(), size);
+        let slice2: Slice = Slice::new(data.clone().into(), size);
         assert_eq!(slice1, slice2);
         assert!(slice1 == slice2);
     }
@@ -94,8 +94,8 @@ mod test {
         let size1: usize = 4;
         let data2: Vec<u8> = vec![0x00, 0x01, 0x02, 0x04];
         let size2: usize = 4;
-        let slice1: Slice = Slice::new(data1, size1);
-        let slice2: Slice = Slice::new(data2, size2);
+        let slice1: Slice = Slice::new(data1.into(), size1);
+        let slice2: Slice = Slice::new(data2.into(), size2);
         assert_eq!(slice1.partial_cmp(&slice2), Some(cmp::Ordering::Less));
         assert!(slice1 < slice2);
     }
